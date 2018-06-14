@@ -1,0 +1,144 @@
+<div id="feedback-modal" class="modal fade" tabindex="-1">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header text-center">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-12">
+							<h3 id="feedback-modal-title">Create Feedback Question</h3>
+						</div>
+					</div>
+				</div>
+
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				  <span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form id="feedback-modal-submit" method='POST' action='/admin/feedbacks'>
+				<div class="modal-body">
+					<div class="container">
+						<div class="row">
+							<div class="col-md-12">
+
+								<div class="tab-content">
+									<div role="tabpanel" class="tab-pane active" id="feedback-write">
+										<div class="form-group">
+											<label for="feedback-modal-question">Question</label>
+											<textarea pattern=".{1,}" required
+													  id="feedback-modal-question" type="text" class="form-control" name="question"
+													  placeholder="On a scale of 1 to 5 stars, how would you rate this challenge?" rows="7"></textarea>
+										</div>
+									</div>
+								</div>
+
+								<div class="form-group">
+									<label for="feedback-modal-type">Answer Type</label>
+									<select id="feedback-modal-type" class="form-control" name="type">
+										<option value="0">Rating of 1 to 5</option>
+										<option value="1">Text input</option>
+									</select>
+								</div>
+								<input type="hidden" id="chal-id-for-feedback" name="chal">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<div class="container">
+						<div class="row">
+							<div class="col-md-12">
+								<input type="hidden" value="{{ nonce }}" name="nonce" id="nonce">
+								<button class="btn btn-primary float-right" id="feedback-modal-button">Add Question</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+
+<div id="feedback-answers-modal" class="modal fade" tabindex="-1">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header text-center">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-12">
+							<h3 id="feedback-modal-title">Viewing Feedback Answers</h3>
+						</div>
+					</div>
+				</div>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-12">
+							<div class='feedback-answers'>
+								<table id="answersboard" class="table table-striped">
+									<thead>
+										<tr>
+											<td class="text-center"><b>Team</b></td>
+											<td class="text-center"><b>Answer</b></td>
+											<td class="text-center"><b>Timestamp</b></td>
+										</tr>
+									</thead>
+									<tbody>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div id="update-feedbacks" class="modal fade" tabindex="-1" chal-id="">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header text-center">
+				<div class="container">
+					<div class="row">
+						<div class="col-md-12">
+							<h3 class="text-center">Challenge Feedbacks</h3>
+						</div>
+					</div>
+				</div>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				  <span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="container text-center">
+					<a href="#" id="create-feedback" class="btn btn-primary text-center">New Feedback Question</a>
+				</div>
+				<div class="container">
+					<div class="row">
+						<div class="col-md-12">
+							<div class='current-feedbacks'>
+								<table id="feedbacksboard" class="table table-striped">
+									<thead>
+										<tr>
+											<td class="text-center"><b>Question</b></td>
+											<td class="text-center"><b>Type</b></td>
+											<td class="text-center"><b>Settings</b></td>
+										</tr>
+									</thead>
+									<tbody>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
