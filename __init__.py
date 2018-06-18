@@ -13,10 +13,18 @@ from flask import (
 import datetime
 
 from CTFd import utils, challenges
-from CTFd.models import db, Challenges, Teams
-from CTFd.utils import admins_only, is_admin, authed_only
+from CTFd.challenges import challenges_view
+from CTFd.models import db, Challenges, Teams, Solves
+from CTFd.utils import is_admin
+from CTFd.utils.decorators import (
+    authed_only,
+    admins_only,
+    during_ctf_time_only,
+    require_verified_emails,
+    viewable_without_authentication
+)
 
-from sqlalchemy.sql import or_, expression
+from sqlalchemy.sql import and_, expression
 
 class ChallengeFeedbackQuestions(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -59,15 +67,103 @@ def load(app):
 
 
 
-    @app.route('/admin/chal/<int:chalid>/feedbacks', methods=['GET'])
-    @admins_only
-    def admin_chal_feedbacks(chalid):
+    @app.route('/chal/<int:chalid>/feedbacks', methods=['GET'])
+    @require_verified_emails
+    @viewable_without_authentication(status_code=403)
+    def chal_feedbacks(chalid):
+        teamid = session.get('id')
+        # Get solved challenge ids
+        solves = []
+        if utils.user_can_view_challenges():
+            if utils.authed():
+                solves = Solves.query\
+                    .join(Teams, Solves.teamid == Teams.id)\
+                    .filter(Solves.teamid == session['id'])\
+                    .all()
+        solve_ids = []
+        for solve in solves:
+            solve_ids.append(solve.chalid)
+
+        # Return nothing if challenge is not solved
+        if chalid not in solve_ids:
+            return jsonify([])
+
+        # Otherwise, return the feedback questions
         feedbacks = []
         for feedback in ChallengeFeedbackQuestions.query.filter_by(chalid=chalid).all():
-            feedbacks.append({'id': feedback.id, 'question': feedback.question, 'type': feedback.inputtype})
+            answer_entry = ChallengeFeedbackAnswers.query.filter(and_(
+                ChallengeFeedbackAnswers.questionid==feedback.id, 
+                ChallengeFeedbackAnswers.teamid==teamid
+            )).first()
+            answer = ""
+            if answer_entry is not None:
+                answer = answer_entry.answer
+            feedbacks.append({
+                'id': feedback.id, 
+                'question': feedback.question, 
+                'type': feedback.inputtype, 
+                'answer': answer
+            })
         data = {}
         data['feedbacks'] = feedbacks
         return jsonify(data)
+
+    @app.route('/chal/<int:chalid>/feedbacks/answer', methods=['POST'])
+    @require_verified_emails
+    @viewable_without_authentication(status_code=403)
+    def chal_feedback_answer(chalid):
+        teamid = session.get('id')
+        success_msg = "Thank you for your feedback"
+
+        # Get solved challenge ids
+        solves = []
+        if utils.user_can_view_challenges():
+            if utils.authed():
+                solves = Solves.query\
+                    .join(Teams, Solves.teamid == Teams.id)\
+                    .filter(Solves.teamid == session['id'])\
+                    .all()
+        solve_ids = []
+        for solve in solves:
+            solve_ids.append(solve.chalid)
+
+        # Get feedback ids for this challenge
+        feedback_ids = []
+        for feedback in ChallengeFeedbackQuestions.query.filter_by(chalid=chalid).all():
+            feedback_ids.append(feedback.id)
+
+        if (utils.authed() and utils.is_verified() and chalid in solve_ids):
+            for name, value in request.form.iteritems():
+                name_tokens = name.split("-")
+                if name_tokens[0] == "feedback":
+                    feedbackid = int(name_tokens[1])
+                    if feedbackid not in feedback_ids:
+                        return jsonify({
+                            'status': 1,
+                            'message': "Error: Invalid feedback ID"
+                        })
+
+                    existing_feedback = ChallengeFeedbackAnswers.query.filter(and_(
+                        ChallengeFeedbackAnswers.questionid==feedbackid, 
+                        ChallengeFeedbackAnswers.teamid==teamid
+                    )).first()
+                    if existing_feedback is not None:
+                        db.session.delete(existing_feedback)
+                        success_msg = "Your feedback has been updated"
+
+                    feedback_answer = ChallengeFeedbackAnswers(feedbackid, teamid, value)
+                    db.session.add(feedback_answer)
+                    db.session.commit()
+        else:
+            return jsonify({
+                    'status': 1,
+                    'message': "Error: Authentication failed"
+                })
+                
+        return jsonify({
+                    'status': 0,
+                    'message': success_msg
+                })
 
 
 
