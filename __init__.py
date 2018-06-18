@@ -66,6 +66,19 @@ def load(app):
         return render_template('challenge-feedback-config.html', challenges=challenges)
 
 
+    @app.route('/admin/chal/<int:chalid>/feedbacks', methods=['GET'])
+    @admins_only
+    def admin_chal_feedbacks(chalid):
+        feedbacks = []
+        for feedback in ChallengeFeedbackQuestions.query.filter_by(chalid=chalid).all():
+            feedbacks.append({
+                'id': feedback.id, 
+                'question': feedback.question, 
+                'type': feedback.inputtype, 
+            })
+        data = {}
+        data['feedbacks'] = feedbacks
+        return jsonify(data)
 
     @app.route('/chal/<int:chalid>/feedbacks', methods=['GET'])
     @require_verified_emails

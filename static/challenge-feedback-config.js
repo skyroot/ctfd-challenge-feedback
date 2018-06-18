@@ -50,7 +50,7 @@ function loadanswers(feedbackid, cb) {
 }
 
 function loadfeedbacks(chal, cb) {
-    $.get(script_root + '/chal/{0}/feedbacks'.format(chal), function(data){
+    $.get(script_root + '/admin/chal/{0}/feedbacks'.format(chal), function(data){
         var table = $('#feedbacksboard > tbody');
         table.empty();
         for (var i = 0; i < data.feedbacks.length; i++) {
