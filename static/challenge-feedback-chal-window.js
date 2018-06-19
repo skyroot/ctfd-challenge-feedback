@@ -1,53 +1,25 @@
 $(document).ready(function() {
 
-    var feedbackButton = $("<button>", {
-        "id" : "chal-feedback-button",
-        "class" : "btn btn-outline-info btn-feedback btn-block",
-        "html" : "<small>Leave Feedback</small>",
-    });
-
-    var feedbackModal = '<div class="modal fade" tabindex="-1" role="dialog">' +
-        '  <div class="modal-dialog" role="document">' +
-        '    <div class="modal-content">' +
-        '      <div class="modal-header">' +
-        '        <h5 class="modal-title">Leave Feedback</h5>' +
-        '        <button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
-        '          <span aria-hidden="true">&times;</span>' +
-        '        </button>' +
-        '      </div>' +
-        '      <form id="chal-feedback-form" method="POST" action="/chal/\{0\}/feedbacks/answer">' +
-        '        <input id="nonce" name="nonce" type="hidden" value="\{1\}">' +
-        '        <div class="modal-body">' +
-        '          <div id="input-fields"></div>' +
-        '        </div>' +
-        '        <div class="modal-footer">' +
-        '          <button id="feedback-submit-button" type="submit" class="btn btn-primary">Submit</button>' +
-        '        </div>' +
-        '        <div class="modal-body" style="padding:0 1rem;">' +
-        '          <div id="feedback-result-notification" class="alert alert-dismissable text-center w-100" role="alert" style="display: none;">' +
-        '            <strong id="feedback-result-message"></strong>' +
-        '          </div>' +
-        '        </div>' +
-        '      </form>' +
-        '    </div>' +
-        '  </div>' +
-        '</div>';
-
     var feedbackInlineForm = 
+    '    <div id="chal-feedback-group">' +
+    '      <hr><h4 class="text-center pb-3">Give Feedback</h4>' +
     '      <form id="chal-feedback-form" method="POST" action="/chal/\{0\}/feedbacks/answer">' +
     '        <input id="nonce" name="nonce" type="hidden" value="\{1\}">' +
-    '        <div class="modal-body">' +
+    '        <div class="form-group">' +
     '          <div id="input-fields"></div>' +
     '        </div>' +
-    '        <div class="modal-footer">' +
+    '        <div class="form-group">' +
     '          <button id="feedback-submit-button" type="submit" class="btn btn-primary">Submit</button>' +
     '        </div>' +
-    '        <div class="modal-body" style="padding:0 1rem;">' +
+    '        <div class="form-group">' +
     '          <div id="feedback-result-notification" class="alert alert-dismissable text-center w-100" role="alert" style="display: none;">' +
     '            <strong id="feedback-result-message"></strong>' +
     '          </div>' +
     '        </div>' +
-    '      </form>';
+    '      </form>' +
+    '    </div>';
+
+    var chalid = -1;
 
     (function() {
         try {
@@ -56,8 +28,8 @@ $(document).ready(function() {
                 old_updateChalWindow(obj);
                 
                 $('#chal-window').one('shown.bs.modal', function(e) {
-                    updateFeedbackButton(obj);
-                    showFeedbackButton();
+                    chalid = obj.id;
+                    showFeedbackForm();
                 });
             }
         } catch (err) {
@@ -69,12 +41,8 @@ $(document).ready(function() {
             renderSubmissionResponse = function (data, cb) {
                 old_renderSubmissionResponse(data, cb);
                 var result = $.parseJSON(JSON.stringify(data));
-                if (result.status == 1) {   // Challenge solved
-                    showFeedbackButton();
-                    var chalid = feedbackButton.attr("chal-id");
-                    loadFeedbackModal(chalid);
-                } else if (result.status == 2) { // Challenge already solved
-                    showFeedbackButton();
+                if (result.status == 1 || result.status == 2) {   // Challenge (already) solved
+                    showFeedbackForm();
                 }
             }
         } catch (err) {
@@ -82,29 +50,14 @@ $(document).ready(function() {
         }
     })();
 
-    function updateFeedbackButton(obj) {
-        feedbackButton.off('click').on("click", function() {
-            loadFeedbackModal(obj.id);
-        }).attr("chal-id", obj.id);
-    }
-
-    function showFeedbackButton() {
-        var chalid = feedbackButton.attr("chal-id");
-        $.get(script_root + '/chal/{0}/feedbacks'.format(chalid), function(data) {
-            if (data.feedbacks.length > 0) {
-                $("#challenge").append(feedbackButton);
-            }
-        });
-    }
-
-    function loadFeedbackModal(chalid) {
+    function showFeedbackForm() {
         $.get(script_root + '/chal/{0}/feedbacks'.format(chalid), function(data) {
             if (data.feedbacks.length <= 0) {
                 return;
             }
-
+            
             var nonce = $('#nonce').val();
-            var res = feedbackModal.format(chalid, nonce);
+            var res = feedbackInlineForm.format(chalid, nonce);
             var obj = $(res);
 
             var inputFields = obj.find("#input-fields");
@@ -172,8 +125,7 @@ $(document).ready(function() {
                 var submitButton = $(this);
                 submitButton.addClass("disabled-button");
                 submitButton.prop('disabled', true);
-
-                var chalid = feedbackButton.attr("chal-id");
+                
                 $.post( script_root + '/chal/' + chalid + '/feedbacks/answer', 
                         obj.find("#chal-feedback-form").serialize(), 
                         function(data) 
@@ -200,14 +152,10 @@ $(document).ready(function() {
                     submitButton.prop('disabled', false);
                 }, 3000);
             });
-
-            $('main').append(obj);
-
-            obj.modal('show');
-
-            $(obj).on('hidden.bs.modal', function(e) {
-                $(this).modal('dispose');
-            });
+            
+            $("#challenge").append(obj);
+            obj.hide();
+            obj.slideDown();
         });
     }
 
