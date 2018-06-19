@@ -33,6 +33,22 @@ $(document).ready(function() {
         '  </div>' +
         '</div>';
 
+    var feedbackInlineForm = 
+    '      <form id="chal-feedback-form" method="POST" action="/chal/\{0\}/feedbacks/answer">' +
+    '        <input id="nonce" name="nonce" type="hidden" value="\{1\}">' +
+    '        <div class="modal-body">' +
+    '          <div id="input-fields"></div>' +
+    '        </div>' +
+    '        <div class="modal-footer">' +
+    '          <button id="feedback-submit-button" type="submit" class="btn btn-primary">Submit</button>' +
+    '        </div>' +
+    '        <div class="modal-body" style="padding:0 1rem;">' +
+    '          <div id="feedback-result-notification" class="alert alert-dismissable text-center w-100" role="alert" style="display: none;">' +
+    '            <strong id="feedback-result-message"></strong>' +
+    '          </div>' +
+    '        </div>' +
+    '      </form>';
+
     (function() {
         try {
             var old_updateChalWindow = updateChalWindow;
@@ -108,9 +124,21 @@ $(document).ready(function() {
                             name : "feedback-" + feedback.id,
                             class : "form-control",
                         }).css("padding", ".375rem .75rem");
-                        for (var optioni = 1; optioni <= 5; optioni++) {
+
+                        var ratingLowLabel = "";
+                        var ratingHighLabel = "";
+                        if (feedback.extraarg1 != "") {
+                            ratingLowLabel = " - " + feedback.extraarg1;
+                        }
+                        if (feedback.extraarg2 != "") {
+                            ratingHighLabel = " - " + feedback.extraarg2;
+                        }
+                        select.append("<option value='1'>1" + ratingLowLabel + "</option>");
+                        for (var optioni = 2; optioni <= 4; optioni++) {
                             select.append("<option value='" + optioni + "'>" + optioni + "</option>");
                         }
+                        select.append("<option value='5'>5" + ratingHighLabel + "</option>");
+                        
                         if (feedback.answer != "") {
                             select.val(feedback.answer);
                         }

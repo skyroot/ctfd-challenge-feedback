@@ -31,11 +31,15 @@ class ChallengeFeedbackQuestions(db.Model):
     chalid = db.Column(db.Integer, db.ForeignKey('challenges.id'))
     question = db.Column(db.String(100), nullable=False)
     inputtype = db.Column(db.Integer)
+    extraarg1 = db.Column(db.String(100))
+    extraarg2 = db.Column(db.String(100))
 
-    def __init__(self, chalid, question, inputtype):
+    def __init__(self, chalid, question, inputtype, extraarg1, extraarg2):
         self.chalid = chalid
         self.question = question
         self.inputtype = inputtype
+        self.extraarg1 = extraarg1
+        self.extraarg2 = extraarg2
 
 class ChallengeFeedbackAnswers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -74,7 +78,9 @@ def load(app):
             feedbacks.append({
                 'id': feedback.id, 
                 'question': feedback.question, 
-                'type': feedback.inputtype, 
+                'type': feedback.inputtype,
+                'extraarg1' : feedback.extraarg1,
+                'extraarg2' : feedback.extraarg2,
             })
         data = {}
         data['feedbacks'] = feedbacks
@@ -114,8 +120,10 @@ def load(app):
             feedbacks.append({
                 'id': feedback.id, 
                 'question': feedback.question, 
-                'type': feedback.inputtype, 
-                'answer': answer
+                'type': feedback.inputtype,
+                'extraarg1' : feedback.extraarg1,
+                'extraarg2' : feedback.extraarg2,
+                'answer': answer,
             })
         data = {}
         data['feedbacks'] = feedbacks
@@ -232,21 +240,30 @@ def load(app):
                         'id': feedback.id,
                         'chalid': feedback.chalid,
                         'question': feedback.question,
-                        'type': feedback.inputtype
+                        'type': feedback.inputtype,
+                        'extraarg1' : feedback.extraarg1,
+                        'extraarg2' : feedback.extraarg2,
                     })
                 return jsonify({'results': json_data})
             elif request.method == 'POST':
                 question = request.form.get('question')
                 chalid = int(request.form.get('chal'))
-                inputtype = int(request.form.get('type') or 0)
-                feedback = ChallengeFeedbackQuestions(chalid=chalid, question=question, inputtype=inputtype)
+                inputtype = int(request.form.get('type') or -1)
+                extraarg1 = ""
+                extraarg2 = ""
+                if inputtype == 0:
+                    extraarg1 = request.form.get('ratinglowlabel')
+                    extraarg2 = request.form.get('ratinghighlabel')
+                feedback = ChallengeFeedbackQuestions(chalid=chalid, question=question, inputtype=inputtype, extraarg1=extraarg1, extraarg2=extraarg2)
                 db.session.add(feedback)
                 db.session.commit()
                 json_data = {
                     'id': feedback.id,
                     'chalid': feedback.chalid,
                     'question': feedback.question,
-                    'type': feedback.inputtype
+                    'type': feedback.inputtype,
+                    'extraarg1' : feedback.extraarg1,
+                    'extraarg2' : feedback.extraarg2,
                 }
                 db.session.close()
                 return jsonify(json_data)

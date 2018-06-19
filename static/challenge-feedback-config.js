@@ -55,9 +55,13 @@ function loadfeedbacks(chal, cb) {
         table.empty();
         for (var i = 0; i < data.feedbacks.length; i++) {
             var feedback = data.feedbacks[i];
+            var ratinglabels = "";
+            if (feedback.type == 0) {
+                ratinglabels = " (1 - " + feedback.extraarg1 + ", 5 - " + feedback.extraarg2 + ")";
+            }
             var feedback_row = "<tr>" +
             "<td class='feedback-entry d-table-cell w-75'><pre>{0}</pre></td>".format(htmlentities(feedback.question)) +
-            "<td class='feedback-type d-table-cell text-center'>{0}</td>".format(FEEDBACK_TYPES[feedback.type]) +
+            "<td class='feedback-type d-table-cell text-center'>{0}</td>".format(FEEDBACK_TYPES[feedback.type] + ratinglabels) +
             "<td class='feedback-settings d-table-cell text-center'><span>" +
                 "<i role='button' class='btn-fa fas fa-chart-bar' onclick=javascript:load_feedback_modal('answers',{0})></i>".format(feedback.id)+
                 "<span>&nbsp; &nbsp;</span>"+
@@ -99,6 +103,16 @@ $(document).ready(function () {
             loadfeedbacks(params['chal']);
         });
         $("#feedback-modal").modal('hide');
+    });
+
+    $('#feedback-modal-type').change(function() {
+        $("#rating-high-label").val("");
+        $("#rating-low-label").val("");
+        if ($(this).val() == "0") {     // Rating of 1 to 5
+            $("#rating-labels").show();
+        } else {                        // Text input
+            $("#rating-labels").hide();
+        }
     });
 
 });
