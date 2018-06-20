@@ -7,15 +7,20 @@ from flask import (
     Blueprint,
     url_for,
     Response,
-    session
+    session,
+    send_file
 )
 
+import datafreeze
+import dataset
 import datetime
+import six
+import zipfile
 
 from CTFd import utils, challenges
 from CTFd.challenges import challenges_view
 from CTFd.models import db, Challenges, Teams, Solves
-from CTFd.utils import is_admin
+from CTFd.utils import is_admin, get_app_config
 from CTFd.utils.decorators import (
     authed_only,
     admins_only,
@@ -267,3 +272,42 @@ def load(app):
                 }
                 db.session.close()
                 return jsonify(json_data)
+
+    @app.route('/admin/feedbacks/export', methods=['GET', 'POST'])
+    @admins_only
+    def admin_export_feedbacks():
+        backup = export_feedbacks()
+        ctf_name = utils.ctf_name()
+        day = datetime.datetime.now().strftime("%Y-%m-%d")
+        full_name = "{}.{}_feedbacks.zip".format(ctf_name, day)
+        return send_file(backup, as_attachment=True, attachment_filename=full_name)
+
+def export_feedbacks():
+    db = dataset.connect(get_app_config('SQLALCHEMY_DATABASE_URI'))
+    segments = ['feedbacks']
+
+    groups = {
+        'feedbacks': [
+            'challenges',
+            'challenge_feedback_questions',
+            'challenge_feedback_answers',
+        ]
+    }
+
+    # Backup database
+    backup = six.BytesIO()
+
+    backup_zip = zipfile.ZipFile(backup, 'w')
+
+    for segment in segments:
+        group = groups[segment]
+        for item in group:
+            result = db[item].all()
+            result_file = six.BytesIO()
+            datafreeze.freeze(result, format='ctfd', fileobj=result_file)
+            result_file.seek(0)
+            backup_zip.writestr('db/{}.json'.format(item), result_file.read())
+
+    backup_zip.close()
+    backup.seek(0)
+    return backup

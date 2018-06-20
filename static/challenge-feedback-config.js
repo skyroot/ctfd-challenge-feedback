@@ -86,12 +86,10 @@ $(document).ready(function () {
         });
     });
 
-
     $('#create-feedback').click(function (e) {
         e.preventDefault();
         load_feedback_modal('create');
     });
-
 
     $('#feedback-modal-submit').submit(function (e) {
         e.preventDefault();
