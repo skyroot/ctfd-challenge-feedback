@@ -20,6 +20,7 @@ $(document).ready(function() {
     '    </div>';
 
     var chalid = -1;
+    var visibleFeedbackForm = null;
 
     (function() {
         try {
@@ -29,7 +30,8 @@ $(document).ready(function() {
                 
                 $('#chal-window').one('shown.bs.modal', function(e) {
                     chalid = obj.id;
-                    showFeedbackForm();
+                    visibleFeedbackForm = null;
+                    showFeedbackForm(false);
                 });
             }
         } catch (err) {
@@ -41,8 +43,10 @@ $(document).ready(function() {
             renderSubmissionResponse = function (data, cb) {
                 old_renderSubmissionResponse(data, cb);
                 var result = $.parseJSON(JSON.stringify(data));
-                if (result.status == 1 || result.status == 2) {   // Challenge (already) solved
-                    showFeedbackForm();
+                if (result.status == 1) {           // Challenge first solved
+                    showFeedbackForm(true);
+                } else if (result.status == 2) {    // Challenge already solved
+                    showFeedbackForm(false);
                 }
             }
         } catch (err) {
@@ -50,7 +54,10 @@ $(document).ready(function() {
         }
     })();
 
-    function showFeedbackForm() {
+    function showFeedbackForm(isScrollTo = false) {
+        if (visibleFeedbackForm != null) {
+            return;
+        }
         $.get(script_root + '/chal/{0}/feedbacks'.format(chalid), function(data) {
             if (data.feedbacks.length <= 0) {
                 return;
@@ -59,6 +66,7 @@ $(document).ready(function() {
             var nonce = $('#nonce').val();
             var res = feedbackInlineForm.format(chalid, nonce);
             var obj = $(res);
+            visibleFeedbackForm = obj;
 
             var inputFields = obj.find("#input-fields");
 
@@ -155,7 +163,15 @@ $(document).ready(function() {
             
             $("#challenge").append(obj);
             obj.hide();
-            obj.slideDown();
+            obj.slideDown(400, function() {
+                if (isScrollTo) {
+                    setTimeout(function () {
+                        $("#chal-window").animate({
+                            scrollTop: obj.position().top,
+                        }, 400);
+                    }, 1500);
+                }
+            });
         });
     }
 
