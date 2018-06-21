@@ -19,7 +19,7 @@ import zipfile
 
 from CTFd import utils, challenges
 from CTFd.challenges import challenges_view
-from CTFd.models import db, Challenges, Teams, Solves
+from CTFd.models import db, Challenges, Teams, Solves, WrongKeys
 from CTFd.utils import is_admin, get_app_config
 from CTFd.utils.decorators import (
     authed_only,
@@ -282,6 +282,15 @@ def load(app):
         full_name = "{}.{}_feedbacks.zip".format(ctf_name, day)
         return send_file(backup, as_attachment=True, attachment_filename=full_name)
 
+    @app.route('/admin/feedbacks/export_csv', methods=['GET', 'POST'])
+    @admins_only
+    def admin_export_feedbacks_csv():
+        backup = export_feedbacks_csv()
+        ctf_name = utils.ctf_name()
+        day = datetime.datetime.now().strftime("%Y-%m-%d")
+        full_name = "{}.{}_feedbacks.csv".format(ctf_name, day)
+        return send_file(backup, as_attachment=True, attachment_filename=full_name, cache_timeout=5)
+
 def export_feedbacks():
     db = dataset.connect(get_app_config('SQLALCHEMY_DATABASE_URI'))
     segments = ['feedbacks']
@@ -311,3 +320,30 @@ def export_feedbacks():
     backup_zip.close()
     backup.seek(0)
     return backup
+
+def export_feedbacks_csv():
+    output_lines = []
+    output_lines.append("challenge_id,challenge,challenge_desc,challenge_category,challenge_maxattempts,challenge_value,team_id,team,team_email,is_solved,solve_timestamp,num_attempts,feedback_question_id,feedback_question,feedback_question_type,feedback_question_arg1,feedback_question_arg2,feedback_answer,feedback_answer_timestamp")
+    challenges = Challenges.query.all()
+    for challenge in challenges:
+        questions = ChallengeFeedbackQuestions.query.filter_by(chalid=challenge.id).all()
+        for question in questions:
+            teams = Teams.query.all()
+            for team in teams:
+                solve = Solves.query.filter(and_(Solves.chalid==challenge.id, Solves.teamid==team.id)).first()
+                wrongkeys = WrongKeys.query.filter(and_(WrongKeys.chalid==challenge.id, WrongKeys.teamid==team.id)).all()
+                answer = ChallengeFeedbackAnswers.query.filter(and_(ChallengeFeedbackAnswers.questionid==question.id, ChallengeFeedbackAnswers.teamid==team.id)).first()
+                fields = [challenge.id, challenge.name, challenge.description, challenge.category, challenge.max_attempts, challenge.value]
+                fields.extend([team.id, team.name, team.email])
+                if solve is None:
+                    fields.extend([0, ''])
+                else:
+                    fields.extend([1, solve.date])
+                fields.append(len(wrongkeys)+1)
+                fields.extend([question.id, question.question, ('Rating' if question.inputtype==0 else 'Text'), question.extraarg1, question.extraarg2])
+                if answer is None:
+                    fields.extend(['', ''])
+                else:
+                    fields.extend([answer.answer, answer.timestamp])
+                output_lines.append(','.join(map(str, fields)))
+    return six.StringIO('\n'.join(output_lines))
