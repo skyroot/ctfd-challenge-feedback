@@ -337,9 +337,10 @@ def export_feedbacks_csv():
                 fields.extend([team.id, team.name, team.email])
                 if solve is None:
                     fields.extend([0, ''])
+                    fields.append(len(wrongkeys))
                 else:
                     fields.extend([1, solve.date])
-                fields.append(len(wrongkeys)+1)
+                    fields.append(len(wrongkeys) + 1)
                 fields.extend([question.id, question.question, ('Rating' if question.inputtype==0 else 'Text'), question.extraarg1, question.extraarg2])
                 if answer is None:
                     fields.extend(['', ''])
