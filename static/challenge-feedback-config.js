@@ -62,14 +62,20 @@ function loadfeedbacks(chal, cb) {
             var feedback_row = "<tr>" +
             "<td class='feedback-entry d-table-cell w-75'><pre>{0}</pre></td>".format(htmlentities(feedback.question)) +
             "<td class='feedback-type d-table-cell text-center'>{0}</td>".format(FEEDBACK_TYPES[feedback.type] + ratinglabels) +
-            "<td class='feedback-settings d-table-cell text-center'><span>" +
-                "<i role='button' class='btn-fa fas fa-chart-bar' onclick=javascript:load_feedback_modal('answers',{0})></i>".format(feedback.id)+
-                "<span>&nbsp; &nbsp;</span>"+
-                "<i role='button' class='btn-fa fas fa-times' onclick=javascript:deletefeedback({0})></i>".format(feedback.id)+
+            "<td class='feedback-settings d-table-cell text-center'>" +
+                "<span data-toggle='tooltip' data-placement='top' title='View feedback answers'>" +
+                    "<i role='button' class='btn-fa fas fa-chart-bar' onclick=javascript:load_feedback_modal('answers',{0})></i>".format(feedback.id) +
+                "</span>&nbsp; &nbsp;" + 
+                "<span data-toggle='tooltip' data-placement='top' title='Delete feedback answers'>" +
+                    "<i role='button' class='btn-fa fas fa-times' onclick=javascript:deletefeedback({0})></i>".format(feedback.id) +
                 "</span></td>" +
             "</tr>";
             table.append(feedback_row);
         }
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+
         if (cb) {
             cb();
         }
