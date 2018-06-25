@@ -12,7 +12,7 @@ Admins should not tamper with the code on his web browser as it may cause undesi
 A feedback question is visible to a user after he solves its corresponding challenge.
 One challenge may have more than one feedback question.
 
-1. At the Challenge Feedback page, click `View feedbacks` icon under the Settings column for the challenge.
+1. At the *Challenge Feedback* page, click `View feedbacks` icon under the Settings column for the challenge.
 
 1. The "Challenge Feedbacks" dialog will appear, showing all the existing feedback questions for the challenge.
 
@@ -26,7 +26,7 @@ A feedback answer is a user's response to a feedback question.
 Each feedback question can have only one feedback answer per user. 
 They can only be viewed by the admin.
 
-1. At the Challenge Feedback page, click `View feedbacks` under the Settings column for the challenge.
+1. At the *Challenge Feedback* page, click `View feedbacks` under the Settings column for the challenge.
 
 1. The "Challenge Feedbacks" dialog will appear, showing all the existing feedback questions for the challenge.
 
@@ -36,7 +36,7 @@ They can only be viewed by the admin.
 
 You can delete a feedback question with all its corresponding feedback answers.
 
-1. At the Challenge Feedback page, click 'View feedbacks' under the Settings column for the challenge.
+1. At the *Challenge Feedback* page, click 'View feedbacks' under the Settings column for the challenge.
 
 1. The "Challenge Feedbacks" dialog will appear, showing all the existing feedback questions for the challenge.
 
@@ -50,7 +50,7 @@ You can export and download all feedback questions and feedback answers onto you
 
 > CSV files are recommended for using a spreadsheet editor or statistical application.
 
-1. At the Challenge Feedback page, click `Export to JSON` or `Export to CSV` button.
+1. At the *Challenge Feedback* page, click `Export to JSON` or `Export to CSV` button.
 
 ## As a User
 
