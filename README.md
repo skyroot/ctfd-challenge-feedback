@@ -8,6 +8,12 @@ Allows users to give feedback for a challenge after solving it.
 
 For instructors to collect feedbacks for challenges to make adjustments or improvements.
 
+## Install
+
+Copy or clone this repository into CTFd/plugins:
+
+`git clone https://github.com/nus-ncl/ctfd-linear-unlocking.git`
+
 ## Features
 
 - Create/delete feedback questions for each challenge
